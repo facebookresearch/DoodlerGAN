@@ -56,6 +56,23 @@ We analyze the quality and novelty of the generations with four metrics: Frechet
 python evaluate.py training_dir generation_dir --gpu 1 --name birds
 ```
 
+### PNG to SVG Conversion
+
+For png output to svg conversion first install the following packages:
+
+```bash
+apt-get install imagemagick
+apt-get install potrace
+```
+
+Once the packages are installed, a png image can be converted to svg using the following command:
+
+```bash
+
+convert input.png bmp:- | mkbitmap - -t 0.20 -o - | potrace --svg --group  -o - > output.svg
+```
+
+
 ## License
 
 DoodlerGAN is MIT licensed, as found in the LICENSE file.
