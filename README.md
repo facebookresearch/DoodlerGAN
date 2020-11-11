@@ -6,7 +6,7 @@ DoodlerGAN is a part-based Generative Adversarial Network (GAN) designed to gene
 
 ## Preparation
 
-First, create the enviroment with Anaconda. Installing Pytorch and the other packages listed as requirements.txt. The code is tested with PyTorch 1.3.1 and CUDA 10.0:
+First, create the enviroment with Anaconda. Install Pytorch and the other packages listed in requirements.txt. The code is tested with PyTorch 1.3.1 and CUDA 10.0:
 
 ```
   mkdir creative_sketch_generation creative_sketch_generation/data creative_sketch_generation/results creative_sketch_generation/models
@@ -18,7 +18,9 @@ First, create the enviroment with Anaconda. Installing Pytorch and the other pac
   pip install -r requirements.txt
 ```
 
-Then download our processed Creative Birds and Creative Creatures datasets from the GoogleDrive: https://drive.google.com/drive/folders/14ZywlSE-khagmSz23KKFbLCQLoMOxPzl?usp=sharing and unzip them under the directory `creative_sketch_generation/data/`.
+Next, download our processed Creative Birds and Creative Creatures datasets from the GoogleDrive: https://drive.google.com/drive/folders/14ZywlSE-khagmSz23KKFbLCQLoMOxPzl?usp=sharing and unzip the folders under the directory `creative_sketch_generation/data/`.
+
+To process the raw data from the scratch, check the scripts in `data_process.py`.
 
 ## Usage
 
