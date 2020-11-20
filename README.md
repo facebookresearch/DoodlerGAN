@@ -1,5 +1,7 @@
 # Creative Sketch Generation (DoodlerGAN)
 
+Paper: https://arxiv.org/abs/2011.10039 
+
 DoodlerGAN is a part-based Generative Adversarial Network (GAN) designed to generate creative sketches with unseen compositions of novel part appearances. Concretely, DoodlerGAN contains two modules: the part generator and the part selector. Given a part-based representation of a partial sketch, the part selector predicts which part category to draw next. Given a part-based representation of a partial sketch and a part category, the part generator generates a raster image of the part (which represents both the appearance and location of the part). Some randomly selected generation with DoodlerGAN trained on Creative Birds and Creative Creatures dataset are shown below.
 
 ![Generated Sketches](figs/generation.png)
@@ -74,6 +76,17 @@ Once the packages are installed, a png image can be converted to svg using the f
 convert input.png bmp:- | mkbitmap - -t 0.20 -o - | potrace --svg --group  -o - > output.svg
 ```
 
+## Citation
+```
+@misc{ge2020creative,
+      title={Creative Sketch Generation}, 
+      author={Songwei Ge and Vedanuj Goswami and C. Lawrence Zitnick and Devi Parikh},
+      year={2020},
+      eprint={2011.10039},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ## License
 
