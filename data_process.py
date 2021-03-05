@@ -36,10 +36,10 @@ def vector_to_raster(vector_images, part_label=False, nodetail=False, side=64, l
 		ctx.paint()
 		vector_image = []
 		x_max = y_max = 0
-		for step in vector_data['output']['all_strokes']:
+		for step in vector_data['all_strokes']:
 			vector_image.append([]) # for each step
 			for stroke in step:
-				if len(stroke) == 0: # skip the empty stroke like the one in step 3
+				if len(stroke) == 0: # skip the empty stroke
 					vector_image[-1].append([])
 					continue
 				vector_image[-1].append(np.array([stroke[0][:2]]+[point[2:4] for point in stroke])) # add each stroke N x 2
@@ -55,15 +55,8 @@ def vector_to_raster(vector_images, part_label=False, nodetail=False, side=64, l
 		ctx.set_source_rgb(*fg_color)
 		for j, step in enumerate(vector_image): 
 			if part_label:
-				if j == 0:
-					ctx.set_source_rgb(*COLORS['initial'])
-				elif j == 1:
-					ctx.set_source_rgb(*COLORS['eye'])
-				elif j == len(vector_image)-1 and vector_data['output']['partsUsed'][j-2] == 'none': # last one and details
-					ctx.set_source_rgb(*COLORS['details'])
-				elif vector_data['output']['partsUsed'][j-2] != 'none':
-					ctx.set_source_rgb(*COLORS[vector_data['output']['partsUsed'][j-2]])
-			if nodetail and j == len(vector_image)-1 and vector_data['output']['partsUsed'][j-2] == 'none':
+				ctx.set_source_rgb(*COLORS[vector_data['partsUsed'][j]])
+			if nodetail and j == len(vector_image)-1 and vector_data['partsUsed'][j] == 'details':
 				continue
 			for stroke in step:
 				if len(stroke) == 0:
@@ -104,14 +97,14 @@ def vector_image_to_vector_part(vector_images, target_part, side=64, line_diamet
 		elif data_name == 'creature':
 			strokes_input_parts = {'initial':[], 'eye':[], 'arms':[], 'beak':[], 'mouth':[], 'body':[], 'ears':[], 'feet':[],  'fin':[], 'hair':[], 'hands':[], 
 									'head':[], 'horns':[], 'legs':[],  'nose':[], 'paws':[], 'tail':[], 'wings':[]}
-		if target_part not in vector_data['output']['partsUsed'] and target_part != 'eye':
+		if target_part not in vector_data['partsUsed']:
 			continue
 		vector_image = []
 		x_max = y_max = 0
-		for step in vector_data['output']['all_strokes']:
+		for step in vector_data['all_strokes']:
 			vector_image.append([]) # for each step
 			for stroke in step:
-				if len(stroke) == 0: # skip the empty stroke like the one in step 3
+				if len(stroke) == 0: # skip the empty stroke
 					vector_image[-1].append([])
 					continue
 				vector_image[-1].append(np.array([stroke[0][:2]]+[point[2:4] for point in stroke])) # add each stroke N x 2
@@ -125,17 +118,13 @@ def vector_image_to_vector_part(vector_images, target_part, side=64, line_diamet
 				vector_image[j][k] = vector_image[j][k]+offset  if len(vector_image[j][k]) > 0 else vector_image[j][k]
 		# save strokes
 		for j, step in enumerate(vector_image): 
-			if j>2 and vector_data['output']['partsUsed'][j-2] == target_part or j==1 and target_part=='eye': # find one part
+			if vector_data['partsUsed'][j] == target_part: # find one part
 				processed_vector_input_parts[-1].append(copy.deepcopy(strokes_input_parts))
-			if j == 0:
-				strokes_input_parts['initial'] += step
-			elif j == 1:
-				strokes_input_parts['eye'] += step
-			elif j != len(vector_image)-1 and vector_data['output']['partsUsed'][j-2] != 'none': # last one and details
-				strokes_input_parts[vector_data['output']['partsUsed'][j-2]] += step
+			if j != len(vector_image)-1 and vector_data['partsUsed'][j] != 'details': # last one and details
+				strokes_input_parts[vector_data['partsUsed'][j]] += step
 			else:
 				continue
-			if j>2 and vector_data['output']['partsUsed'][j-2] == target_part or j==1 and target_part=='eye':
+			if vector_data['partsUsed'][j] == target_part:
 				# record the input + part
 				processed_vector_parts[-1].append(step)
 		# record all the parts
@@ -157,10 +146,9 @@ if data_name == 'bird':
 			'beak':np.array([211, 84, 0])/255., 'body':np.array([41, 128, 185])/255., 'details':np.array([171, 190, 191])/255.,
 			'head':np.array([192, 57, 43])/255., 'legs':np.array([142, 68, 173])/255., 'mouth':np.array([39, 174, 96])/255., 
 			'tail':np.array([69, 85, 101])/255., 'wings':np.array([127, 140, 141])/255.}
-	part_to_id = {'initial': 0, 'eye': 1, 'head': 4, 'body': 3, 'beak': 2, 'legs': 5, 'wings': 8, 'mouth': 6, 'tail': 7}
-	target_parts = ['eye', 'beak', 'body', 'head', 'legs', 'mouth', 'tail', 'wings', 'none']
-	data = [json.loads(line) for fn in ['doodle_short_birds_%d'%i for i in range(1, 11)]+['doodle_real_individual_pilot7_birds_short_initial_strokes'] for line in open('raw_data/%s.txt'%fn)]
-	wid_rej = [line.rstrip() for line in open('raw_data/reject_bird_short_workids_all.txt')]
+	part_to_id = {'initial': 0, 'eye': 1, 'beak': 2, 'body': 3, 'head': 4, 'legs': 5, 'mouth': 6, 'tail': 7, 'wings': 8}
+	target_parts = ['eye', 'beak', 'body', 'head', 'legs', 'mouth', 'tail', 'wings', 'details']
+	data = json.loads(open('raw_data_clean/creative_birds_json.txt').read())
 elif data_name == 'creature':
 	COLORS = {'initial':np.array([45, 169, 145])/255., 'eye':np.array([243, 156, 18])/255., 'none':np.array([149, 165, 166])/255., 
 			'arms':np.array([211, 84, 0])/255., 'beak':np.array([41, 128, 185])/255., 'mouth':np.array([54, 153, 219])/255.,
@@ -172,29 +160,34 @@ elif data_name == 'creature':
 	part_to_id = {'initial': 0, 'eye': 1, 'arms': 2, 'beak': 3, 'mouth': 4, 'body': 5, 'ears': 6, 'feet': 7, 'fin': 8, 
                             'hair': 9, 'hands': 10, 'head': 11, 'horns': 12, 'legs': 13, 'nose': 14, 'paws': 15, 'tail': 16, 'wings':17}
 	target_parts = ['arms', 'beak', 'mouth', 'body', 'eye', 'ears', 'feet',  'fin', 'hair', 'hands', 
-		'head', 'horns', 'legs',  'nose', 'paws', 'tail',  'wings', 'none']
+		'head', 'horns', 'legs',  'nose', 'paws', 'tail',  'wings', 'details']
+	data = json.loads(open('raw_data_clean/creative_creatures_json.txt').read())
 	data = [json.loads(line) for j in range(1, 12) for line in open('raw_data/doodle_generic_%d.txt'%j)]
 	wid_rej = [line.rstrip() for line in open('raw_data/reject_generic_workids_all.txt')]
 
 
 ########################################################################################################################
 # visualize all the sketches by rendering raster images
-raster_images_gs = vector_to_raster(data, part_label=False, nodetail=True, side=side, line_diameter=16, padding=16, bg_color=(0,0,0), fg_color=(1,1,1))
-raster_images_rgb = vector_to_raster(data, part_label=True, nodetail=True, side=side, line_diameter=16, padding=16, bg_color=(1,1,1), fg_color=(0,0,0))
+raster_images_gs = vector_to_raster(data, part_label=False, nodetail=True, side=side, line_diameter=3, padding=16, bg_color=(0,0,0), fg_color=(1,1,1))
+raster_images_rgb = vector_to_raster(data, part_label=True, nodetail=True, side=side, line_diameter=3, padding=16, bg_color=(1,1,1), fg_color=(0,0,0))
 
-for i, raster_image, raster_image_rgb in enumerate(zip(raster_images_gs, raster_images_rgb)):
-	wid = data[i]['worker_id']
-	aid = data[i]['assignment_id']
-	if wid in wid_rej:
+outpath = os.path.join('data/%s_short_full_%d'%(data_name, side))
+outpath_rgb = os.path.join('data/%s_short_full_rgb_%d'%(data_name, side))
+if not os.path.exists(outpath):
+	os.mkdir(outpath)
+	os.mkdir(outpath_rgb)
+
+
+for i, (raster_image, raster_image_rgb) in enumerate(zip(raster_images_gs[:100], raster_images_rgb[:100])):
+	if not data[i]['good_sample']:
 		continue
-	outpath = os.path.join('data/%s_short_full_nodetail_%d'%(data_name, side))
-	outpath_rgb = os.path.join('data/%s_short_full_nodetail_rgb_%d'%(data_name, side))
-	if not os.path.exists(outpath):
-		os.mkdir(outpath)
-		os.mkdir(outpath_rgb)
-	cv2.imwrite(os.path.join(outpath, "%s.png"%(aid)), raster_image)
-	cv2.imwrite(os.path.join(outpath_rgb, "%s.png"%(aid)), raster_image_rgb)
+	cv2.imwrite(os.path.join(outpath, "sketch_%s.png"%i), raster_image)
+	cv2.imwrite(os.path.join(outpath_rgb, "sketch_%s.png"%i), raster_image_rgb)
 
+
+descriptions = [item['description'].strip() for item in data if item['good_sample']]
+with open('%s_description.json'%data_name, 'w') as fp:
+    json.dump(descriptions, fp)
 
 ########################################################################################################################
 ## process vectors images for doodlerGAN
@@ -207,9 +200,7 @@ for target_part in target_parts:
 		os.mkdir(outpath_test)
 		os.mkdir(outpath_train)
 	for i in range(len(data)-500):
-		wid = data[i]['worker_id']
-		aid = data[i]['assignment_id']
-		if wid in wid_rej:
+		if not data[i]['good_sample']:
 			continue
 		if len(vector_input_parts[i]) == 0:
 			continue
@@ -223,12 +214,10 @@ for target_part in target_parts:
 				json_data['target_part'] = [item.tolist() for item in vector_parts[i][j] if len(item) > 0]
 			for key in vector_input_parts[i][j].keys():
 				json_data['input_parts'][key] = [item.tolist() for item in vector_input_parts[i][j][key] if len(item) > 0]
-			with open(outpath_train+"/%s_%d.json"%(data[i]['assignment_id'], j), 'w') as fw:
+			with open(outpath_train+"/sketch%d_%d.json"%(i, j), 'w') as fw:
 				json.dump(json_data, fw)
 	for i in range(len(data)-500, len(data)):
-		wid = data[i]['worker_id']
-		aid = data[i]['assignment_id']
-		if wid in wid_rej:
+		if not data[i]['good_sample']:
 			continue
 		if len(vector_input_parts[i]) == 0:
 			continue
@@ -242,5 +231,5 @@ for target_part in target_parts:
 				json_data['target_part'] = [item.tolist() for item in vector_parts[i][j] if len(item) > 0]
 			for key in vector_input_parts[i][j].keys():
 				json_data['input_parts'][key] = [item.tolist() for item in vector_input_parts[i][j][key] if len(item) > 0]
-			with open(outpath_test+"/%s_%d.json"%(data[i]['assignment_id'], j), 'w') as fw:
+			with open(outpath_test+"/sketch%d_%d.json"%(i, j), 'w') as fw:
 				json.dump(json_data, fw)

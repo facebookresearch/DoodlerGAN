@@ -120,7 +120,7 @@ def generate_truncated(S, G, style, noi, trunc_psi = 0.75, num_image_tiles = 8, 
     return generated_images.clamp_(0., 1.)
 
 @torch.no_grad()
-def generate_part(model, partial_image, partial_rgb, color=None, part_name=20, num=0, num_image_tiles=8, trunc_psi=1., save_img=False, results_dir='../results/bird_seq_unet_5fold'):
+def generate_part(model, partial_image, partial_rgb, color=None, part_name=20, num=0, num_image_tiles=8, trunc_psi=1., save_img=False, trans_std=2, results_dir='../results/bird_seq_unet_5fold'):
     model.eval()
     ext = 'png'
     num_rows = num_image_tiles
@@ -160,7 +160,7 @@ def generate_part(model, partial_image, partial_rgb, color=None, part_name=20, n
     latents_z = noise_list(num_rows ** 2, num_layers, latent_dim)
     n = image_noise(num_rows ** 2, image_size)
     image_partial_batch = partial_image[:, -1:, :, :]
-    translated_image, dx, dy, theta, scale = translate_image(partial_image)
+    translated_image, dx, dy, theta, scale = translate_image(partial_image, trans_std=trans_std)
     bitmap_feats = model.Enc(translated_image)
     # bitmap_feats = model.Enc(partial_image)
     # generated_partial_images = generate_truncated(model.S, model.G, latents_z, n, trunc_psi = trunc_psi, bitmap_feats=bitmap_feats)
@@ -383,7 +383,7 @@ def train_from_folder(
                     sketch_rgb = partial_rgbs
                     stack_part = stack_parts[0].unsqueeze(0)
                     select_model = models[select_part_id]
-                    part, partial, part_rgb, partial_rgb = generate_part(select_model.GAN, stack_part, sketch_rgb, COLORS[select_part], select_part, samples_name, 1, results_dir=results_dir)
+                    part, partial, part_rgb, partial_rgb = generate_part(select_model.GAN, stack_part, sketch_rgb, COLORS[select_part], select_part, samples_name, 1, trans_std=0, results_dir=results_dir)
                     stack_parts[0, part_to_id[select_part]] = part[0, 0]
                     stack_parts[0, -1] = partial[0, 0]
                     partial_rgbs[0] = partial_rgb[0]
@@ -423,7 +423,7 @@ def train_from_folder(
                 sketch_rgb = partial_rgbs[i].clone().unsqueeze(0)
                 stack_part = stack_parts[i].unsqueeze(0)
                 select_model = models[select_part_id]
-                part, partial, part_rgb, partial_rgb = generate_part(select_model.GAN, stack_part, sketch_rgb, COLORS[select_part], select_part, samples_name, 1, results_dir=results_dir)
+                part, partial, part_rgb, partial_rgb = generate_part(select_model.GAN, stack_part, sketch_rgb, COLORS[select_part], select_part, samples_name, 1, trans_std=2, results_dir=results_dir)
                 stack_parts[i, part_to_id[select_part]] = part[0, 0]
                 stack_parts[i, -1] = partial[0, 0]
                 partial_rgbs[i] = partial_rgb[0]

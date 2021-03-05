@@ -328,7 +328,7 @@ class Encoder_unet(nn.Module):
             feats.append(x)        
         return feats
 
-# stylegan2_cond_unet classes
+# stylegan2_cond_unet classes, stylegan2 code is adapted from https://github.com/lucidrains/stylegan2-pytorch
 class StyleVectorizer(nn.Module):
     def __init__(self, emb, depth):
         super().__init__()
